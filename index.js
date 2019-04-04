@@ -27,6 +27,7 @@ function getData(url) {
 }
 
 function jsonParse(string) {
+	// TODO: Fix infinite loop
 	while(true) {
 		try {
 			const jsonData = JSON.parse(string);
@@ -44,9 +45,9 @@ function downloadVideo(videoUrl, first) {
 	if(first === "true") { // If -f is true then write videoUrl to a json file and download the audio/video
 		writeLatestVideoDownloaded(videoUrl);
 		getVideoData(videoUrl);
-		console.log(fileName);
 	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
-		console.log("do not dl")
+		console.log("do not dl");
+		setTimeout(getData, 2000, url);
 	} else if(videoUrl != latestVideoDownloaded && (first == "false" || first == undefined)){ // If videoUrl is not the same as latestVideo then download
 		writeLatestVideoDownloaded(videoUrl);
 		console.log("download");
@@ -77,5 +78,4 @@ function writeLatestVideoDownloaded(videoUrl) {
 	});
 }
 
-// TODO: Run every n seconds
 getData(url);
