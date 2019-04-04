@@ -8,7 +8,7 @@ const youtubedl = require('youtube-dl');
 const url = argv.c;
 // the -f argument is a boolean value. If the app is being run for the first time then it needs to be set to true. ie. -f true
 const first = argv.f;
-
+let fileName = "";
 // TODO: use fs.readFile
 const latestVideoDownloaded = require('./latest_downloaded.json').latestVideoDownloaded;
 
@@ -27,27 +27,47 @@ function getData(url) {
 }
 
 function jsonParse(string) {
-	try {
-		const jsonData = JSON.parse(string);
-		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
-		console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
-		downloadVideo(latestVideo, first);
-	} catch(e) {
-		console.log("Try again... TODO: FIX THIS PROBLEM");
+	while(true) {
+		try {
+			const jsonData = JSON.parse(string);
+			const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
+			console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
+			downloadVideo(latestVideo, first);
+			break;
+		} catch(e) {
+			console.log("There was an error. Trying again...");
+		}
 	}
 }
 
 function downloadVideo(videoUrl, first) {
 	if(first === "true") { // If -f is true then write videoUrl to a json file and download the audio/video
 		writeLatestVideoDownloaded(videoUrl);
-
-		// TODO: honestly cant be arsed anymore
+		getVideoData(videoUrl);
+		console.log(fileName);
 	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
 		console.log("do not dl")
 	} else if(videoUrl != latestVideoDownloaded && (first == "false" || first == undefined)){ // If videoUrl is not the same as latestVideo then download
 		writeLatestVideoDownloaded(videoUrl);
 		console.log("download");
 	}
+}
+
+
+async function getVideoData(videoUrl) {
+	let video = await youtubedl(videoUrl);
+  
+        video.on('info', info => {
+        	console.log(`Download started for ${info._filename} \n File size: ${(info.size/1048626.62057).toFixed(2)}MB`);
+		fileName = info._filename;
+		try {
+			video.pipe(fs.createWriteStream(fileName));
+			console.log("Finished downlading");
+		} catch(e) {
+			console.log(e);
+		}
+        });
+
 }
 
 function writeLatestVideoDownloaded(videoUrl) {
