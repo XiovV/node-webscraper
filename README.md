@@ -4,6 +4,8 @@ It's used for automatically downloading audio/video from latest videos on a YouT
 
 # How to use:
 ```
+git pull https://github.com/XiovV/node-youtube-listener.git
+cd node-youtube-listener
 npm install
 node index.js -c https://www.youtube.com/user/ChannelName -f true
 ```
