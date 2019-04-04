@@ -2,6 +2,7 @@ const fs = require('fs');
 const request = require('request');
 const cheerio = require('cheerio');
 const argv = require('minimist')(process.argv.slice(2));
+const youtubedl = require('youtube-dl');
 
 // the -c argument stands for channel. ie. -c https://youtube.com/user/ChannelName
 const url = argv.c;
@@ -18,10 +19,11 @@ function getData(url) {
 			
 			// gets json data from a script tag. Note: this sometimes causes JSON.parse to crash the app.
 			const data = $('script').get()[8].children[0].data;
-
+			
 			jsonParse(data);
 		}
 	});
+
 }
 
 function jsonParse(string) {
@@ -29,7 +31,6 @@ function jsonParse(string) {
 		const jsonData = JSON.parse(string);
 		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
 		console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
-		
 		downloadVideo(latestVideo, first);
 	} catch(e) {
 		console.log("Try again... TODO: FIX THIS PROBLEM");
@@ -39,10 +40,9 @@ function jsonParse(string) {
 function downloadVideo(videoUrl, first) {
 	if(first === "true") { // If -f is true then write videoUrl to a json file and download the audio/video
 		writeLatestVideoDownloaded(videoUrl);
-		// TODO: download video/audio
-		console.log("first time running.. download the video");
+
+		// TODO: honestly cant be arsed anymore
 	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
-		writeLatestVideoDownloaded(videoUrl);
 		console.log("do not dl")
 	} else if(videoUrl != latestVideoDownloaded && (first == "false" || first == undefined)){ // If videoUrl is not the same as latestVideo then download
 		writeLatestVideoDownloaded(videoUrl);
