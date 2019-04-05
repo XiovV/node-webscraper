@@ -14,7 +14,10 @@ const interval = argv.i;
 const dev = argv.d;
 let fileName = "";
 
-let tries = 0;
+// Variable for keeping track of how many times in a row the script failed.
+let tries = 0; 
+// Default setTimeout interval (2 hours)
+const intervalDefault = 7200000;
 
 function getData(url) {
 	request(url, (err, res, html) => {
@@ -45,7 +48,7 @@ function jsonParse(string, url) {
 			console.log(`There was an error parsing JSON data, this is a common problem. Retrying... (${tries}/10)`);
 			getData(url);
 		} else if (dev == "true") {
-			console.log(`Catch block: ${e}`);
+			console.log(`jsonParse catch block: ${e}`);
 			getData(url);
 		}
 	}
@@ -59,21 +62,21 @@ function downloadVideo(videoUrl, first) {
 		if(interval != undefined) {
                		setTimeout(getData, interval, url);
             	} else if (interval == undefined) {
-                	setTimeout(getData, 10000, url);
+                	setTimeout(getData, intervalDefault, url);
                 }
-
 	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
-		console.log("No new videos detected");
-		console.log(`latestVideoDownloaded: ${latestVideoDownloaded}`);
+		console.log("No new videos detected.");
+
+		if(dev == "true") console.log(`latestVideoDownloaded: ${latestVideoDownloaded}`);
 		if(interval != undefined) {
 			setTimeout(getData, interval, url);
 		} else if (interval == undefined) {
-			setTimeout(getData, 10000, url);
+			setTimeout(getData, intervalDefault, url);
 		}
 	}
 }
 
-async function getVideoData(videoUrl) {
+async function getVideoData(videoUrl) { // TODO: Could maybe be done in a different way.
 	let video = await youtubedl(videoUrl);
   
         video.on('info', info => {
@@ -81,19 +84,28 @@ async function getVideoData(videoUrl) {
 		fileName = info._filename;
 		try {
 			video.pipe(fs.createWriteStream(fileName));
-			console.log("Finished downlading");
+			console.log("Finished downlading.");
 		} catch(e) {
-			console.log(e);
+			if(dev == "false" || dev == undefined) {
+				console.log("There was an error downloading the video");
+			} else if (dev == "true") {
+				console.log(`getVideoData catch block: ${e}`);
+			}		
 		}
         });
-
 }
 
 function writeLatestVideoDownloaded(videoUrl) {
 	fs.writeFile("./latest_downloaded.json", JSON.stringify({latestVideoDownloaded: videoUrl}), (err) => {
-		if (err) console.log(err);
-		console.log(`${videoUrl} has been written to latest_downloaded.json`);
+		if (err && (dev == "false" || dev == undefined)) {
+			console.log("There was an error writing the file");
+		} else if(err && dev == "true") {
+			console.log(`writeLatestVideoDownloaded error: ${err}`);
+		} else if (dev == "true") {
+			console.log(`${videoUrl} has been written to latest_downloaded.json`);
+		}
 	});
 }
 
+console.log("The script will start listening for new videos in a few seconds.");
 getData(url);
