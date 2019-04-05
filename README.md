@@ -12,7 +12,7 @@ node index.js -c https://www.youtube.com/user/ChannelName -f true
 # Command line arguments
 * `-c` (channel) Specify a channel which the script should listen to.
 * `-f` (first) It has to be set to true only when you run the script for the first time. If you're not running it for the first time then you can either set it to false or not type it at all.
-* `-i` (interval) Specify how often the script should check for new YouTube videos. Value has to be specified in miliseconds (ie. `-i 1000` to check every 1 second). Default is 7200000ms (2 hours). Not implemented yet.
+* `-i` (interval) Specify how often the script should check for new YouTube videos. Value has to be specified in miliseconds (ie. `-i 1000` to check every 1 second). Default is 7200000ms (2 hours).
 
 # Examples
 * If you're running the script for the first time and if you want the script to download the latest video and keep checking for new videos on (ie. NewRetroWave) every hour:
