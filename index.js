@@ -1,16 +1,20 @@
 const fs = require('fs');
 const request = require('request');
 const cheerio = require('cheerio');
-const argv = require('minimist')(process.argv.slice(2));
+const argv = require('minimist')(process.argv.slice(1));
 const youtubedl = require('youtube-dl');
 
-// the -c argument stands for channel. ie. -c https://youtube.com/user/ChannelName
+// -c is used to specify which channel the script should listen to ie. -c https://youtube.com/user/ChannelName
 const url = argv.c;
-// the -f argument is a boolean value. If the app is being run for the first time then it needs to be set to true. ie. -f true
+// -f is a boolean value. If the app is being run for the first time then it needs to be set to true. ie. -f true
 const first = argv.f;
-// the -i argument specifies a setTimeout interval
+// -i specifies a setTimeout interval
 const interval = argv.i;
+// -d is a boolean value. If set to true then it will provide logs for debugging
+const dev = argv.d;
 let fileName = "";
+
+let tries = 0;
 
 function getData(url) {
 	request(url, (err, res, html) => {
@@ -31,9 +35,19 @@ function jsonParse(string, url) {
 		const jsonData = JSON.parse(string);
 		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
 		downloadVideo(latestVideo, first);
+		tries = 0;
 	} catch(e) {
-		console.log(`There was an error. Trying again...: ${e}`);
-		getData(url);
+		if(dev == "false" || dev == undefined) { // Basic error logging for a user
+			tries++;
+			if(tries > 9){
+				console.log(`Parsing JSON data failed too many times. Error: ${e}`);
+			}
+			console.log(`There was an error parsing JSON data, this is a common problem. Retrying... (${tries}/10)`);
+			getData(url);
+		} else if (dev == "true") {
+			console.log(`Catch block: ${e}`);
+			getData(url);
+		}
 	}
 }
 
