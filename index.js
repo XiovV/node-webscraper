@@ -29,18 +29,14 @@ function getData(url) {
 }
 
 function jsonParse(string, url) {
-	// TODO: Fix infinite loop
-	while(true) {
-		try {
-			const jsonData = JSON.parse(string);
-			const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
-			console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
-			downloadVideo(latestVideo, first);
-			break;
-		} catch(e) {
-			console.log("There was an error. Trying again...");
-			getData(url);
-		}
+	try {
+		const jsonData = JSON.parse(string);
+		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
+		console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
+		downloadVideo(latestVideo, first);
+	} catch(e) {
+		console.log("There was an error. Trying again...");
+		getData(url);
 	}
 }
 
