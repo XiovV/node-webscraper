@@ -6,8 +6,6 @@ const youtubedl = require('youtube-dl');
 
 // -c is used to specify which channel the script should listen to ie. -c https://youtube.com/user/ChannelName
 const url = argv.c;
-// -f is a boolean value. If the app is being run for the first time then it needs to be set to true. ie. -f true
-const first = argv.f;
 // -i specifies a setTimeout interval
 const interval = argv.i;
 // -d is a boolean value. If set to true then it will provide logs for debugging
@@ -18,6 +16,20 @@ let fileName = "";
 let tries = 0; 
 // Default setTimeout interval (2 hours)
 const intervalDefault = 7200000;
+
+fs.readFile("./latest_downloaded.json", err => {
+	if(err) {
+		fs.writeFile("./latest_downloaded.json", JSON.stringify({latestVideoDownloaded: ""}), (err) => {
+			if (err && (dev == "false" || dev == undefined)) {
+				console.log("There was an error creating latest_downloaded.json");
+			} else if(err && dev == "true") {
+				console.log(`error creating latest_downloaded.json: ${err}`);
+			} else if (dev == "true") {
+				console.log("latest_downloaded.json created");
+			}
+		});
+	}
+});
 
 function getData(url) {
 	request(url, (err, res, html) => {
@@ -37,7 +49,7 @@ function jsonParse(string, url) {
 	try {
 		const jsonData = JSON.parse(string);
 		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
-		downloadVideo(latestVideo, first);
+		downloadVideo(latestVideo);
 		tries = 0;
 	} catch(e) {
 		if(dev == "false" || dev == undefined) { // Basic error logging for a user
@@ -54,9 +66,9 @@ function jsonParse(string, url) {
 	}
 }
 
-function downloadVideo(videoUrl, first) {
+function downloadVideo(videoUrl) {
 	let latestVideoDownloaded = JSON.parse(fs.readFileSync('latest_downloaded.json')).latestVideoDownloaded;
-	if((first === "true") || (videoUrl != latestVideoDownloaded && (first == "false" || first == undefined))) { // If -f is true then write videoUrl to a json file and download the audio/video
+	if(videoUrl != latestVideoDownloaded) { // If -f is true then write videoUrl to a json file and download the audio/video
 		writeLatestVideoDownloaded(videoUrl);
 		getVideoData(videoUrl);
 		if(interval != undefined) {
@@ -64,7 +76,7 @@ function downloadVideo(videoUrl, first) {
             	} else if (interval == undefined) {
                 	setTimeout(getData, intervalDefault, url);
                 }
-	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
+	} else if(videoUrl == latestVideoDownloaded) { // If videoUrl is the same as latestVideo then don't download
 		console.log("No new videos detected.");
 
 		if(dev == "true") console.log(`latestVideoDownloaded: ${latestVideoDownloaded}`);
