@@ -11,8 +11,6 @@ const first = argv.f;
 // the -i argument specifies a setTimeout interval
 const interval = argv.i;
 let fileName = "";
-// TODO: use fs.readFile
-const latestVideoDownloaded = require('./latest_downloaded.json').latestVideoDownloaded;
 
 function getData(url) {
 	request(url, (err, res, html) => {
@@ -32,23 +30,30 @@ function jsonParse(string, url) {
 	try {
 		const jsonData = JSON.parse(string);
 		const latestVideo = jsonData.itemListElement[0].item.itemListElement[0].url;
-		console.log(`latestVideo: ${latestVideo} \n latestVideoDownloaded:$ ${latestVideoDownloaded}`);
 		downloadVideo(latestVideo, first);
 	} catch(e) {
-		console.log("There was an error. Trying again...");
+		console.log(`There was an error. Trying again...: ${e}`);
 		getData(url);
 	}
 }
 
 function downloadVideo(videoUrl, first) {
+	let latestVideoDownloaded = JSON.parse(fs.readFileSync('latest_downloaded.json')).latestVideoDownloaded;
 	if((first === "true") || (videoUrl != latestVideoDownloaded && (first == "false" || first == undefined))) { // If -f is true then write videoUrl to a json file and download the audio/video
 		writeLatestVideoDownloaded(videoUrl);
 		getVideoData(videoUrl);
+		if(interval != undefined) {
+               		setTimeout(getData, interval, url);
+            	} else if (interval == undefined) {
+                	setTimeout(getData, 10000, url);
+                }
+
 	} else if(videoUrl == latestVideoDownloaded && (first === "false" || first == undefined)) { // If videoUrl is the same as latestVideo then don't download
 		console.log("No new videos detected");
+		console.log(`latestVideoDownloaded: ${latestVideoDownloaded}`);
 		if(interval != undefined) {
 			setTimeout(getData, interval, url);
-		} else if (interval == undefined){
+		} else if (interval == undefined) {
 			setTimeout(getData, 10000, url);
 		}
 	}
