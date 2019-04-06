@@ -3,7 +3,7 @@ const request = require('request');
 const cheerio = require('cheerio');
 const argv = require('minimist')(process.argv.slice(1));
 const youtubedl = require('youtube-dl');
-
+const ffmpeg = require('fluent-ffmpeg');
 // -c is used to specify which channel the script should listen to ie. -c https://youtube.com/user/ChannelName
 const url = argv.c;
 // -i specifies a setTimeout interval
@@ -118,6 +118,15 @@ function writeLatestVideoDownloaded(videoUrl) {
 		}
 	});
 }
-
+function convertToMp3() {
+	console.log("Converting to mp3...");
+	let proc = new ffmpeg({source:'./Kalax - III (Full Album)-_TtW5kZGtjQ.mp4'});
+	proc.setFfmpegPath('/bin/ffmpeg');
+	proc.saveToFile('sample.mp3', err => {
+		if (err) console.log(err);
+		console.log("Converting to mp3 finished");
+	});
+}
 console.log("The script will start listening for new videos in a few seconds.");
-getData(url);
+convertToMp3();
+//getData(url);
